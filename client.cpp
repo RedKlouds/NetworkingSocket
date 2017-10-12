@@ -47,21 +47,32 @@ int main(int argc, char *argv[]){
 
     //TODO: Error checking
 
-    int port_num = atoi(argv[1]);   //port
+    int port_num = atoi(argv[1]);   //port (last5 digits of STUID)
     int repetition = atoi(argv[2]); //repetition
     int num_bufs = atoi(argv[3]);   //nbufs
     int buff_size = atoi(argv[4]);  //bufsize
-    int server_ip = atoi(argv[5]);  //server ip
+    char *server_name = argv[5];    //server name, pointer to the IP number
     int type = atoi(argv[6]);       //type of process
     
 
     //retrieve a hostent structure
+    struct hostent *host = gethostbyname(server_name);
+    //connecting the socket
+
+    int port = 22588;
+    struct sockaddr_in sendSockAddr;
+    bzero( (char*)&sendSockAddr, sizeof( sendSockAddr) ); //zero-initalize
+    
+    sendSockAddr.sin_family = AF_INET;              //Address Family internet
+    sendSockAddr.sin_addr.s_addr = inet_addr( inet_ntoa( *(struct in_addr*)
+    *host->h_addr_list ) );        
+    sendSockAddr.sin_port = htons( port_num);       //Set port
 
 
+    //open a stream oriented socket with Intenet address family
+    //socket discriptor
+    int clientSd = socket( AF_INET, SOCK_STREAM, 0);
 
-
-
-
-
+    connect( clientSd, (sockaddr* )&sendSockAddr, sizeof(sendSockAddr ));
 
 }
