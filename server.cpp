@@ -12,7 +12,9 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <unistd.h>
-
+#include <netdb.h>
+#include <netinet/tcp.h>
+#include <stdio.h>
 #include <sys/uio.h>
 #include <fcntl.h>
 #include <sys/time.h>
@@ -23,7 +25,7 @@ using namespace std;
 //
 //////
 
-const int BUFFSIZE = 10;      //as specified
+const int BUFFSIZE = 1500;      //as specified
 const int NUM_CONNECTIONS = 5;  //as specified, max common connections
 ////////////////////////////////
 //Descption: Function called during async socket connections to do the data
@@ -33,8 +35,8 @@ const int NUM_CONNECTIONS = 5;  //as specified, max common connections
 /////////////////////////////////
 
 
-int num_repetitions;    //Server Repeitions
-int server_socket_desc; //server socket descriptor
+int num_reps;    //Server Repeitions
+int serverSockDes; //server socket descriptor
 int new_server_desc;    //returned connection file descritor
 
 void work(int signal_identifier){
@@ -55,8 +57,8 @@ void work(int signal_identifier){
     //repeat calling read
     int count = 0;
    
-    for(int i = 0; i < num_repetitions; i++){
-        cout << "num_repetitions : " << num_repetitions << endl;
+    for(int i = 0; i < num_reps; i++){
+        cout << "num_reps : " << num_reps << endl;
         cout << "BUFF Size : " << BUFFSIZE << endl;
         
         //for each repetition given, coninutally read the buffer until the number 
@@ -88,8 +90,8 @@ void work(int signal_identifier){
     
     gettimeofday(&stop, NULL);
     //double duration = ( clock() - start)/(double) CLOCKS_PER_SEC;
-    total_time = (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_sec -
-    start.tv_sec);
+    total_time = (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_usec -
+    start.tv_usec);
     //cout << "data-receiving time = " << duration << " usec" << endl;
     cout << "data-receiving time = " << total_time << " usec" << endl;
     //Send the number of reads back to the client, which also serves as
@@ -99,7 +101,7 @@ void work(int signal_identifier){
    
     //terminate the server process
     close(new_server_desc);
-    close(server_socket_desc);
+    close(serverSockDes);
 
     exit(0);
 }
@@ -112,10 +114,10 @@ int main(int argc, char *argv[]){
     //TODO: Error checking
     
     int port_num = atoi(argv[1]);
-    num_repetitions = atoi(argv[2]);
+    num_reps = atoi(argv[2]);
         
     //build the struct for establising a connection
-    struct sockaddr_in acceptSockAddr;
+    sockaddr_in acceptSockAddr;
     //zero initalize the struct
     bzero( (char*)&acceptSockAddr, sizeof( acceptSockAddr ) );
     //Address Family Internet
@@ -125,30 +127,30 @@ int main(int argc, char *argv[]){
     acceptSockAddr.sin_port = htons( port_num);
     
     //server Descriptor
-    server_socket_desc = socket( AF_INET, SOCK_STREAM, 0);
+    serverSockDes = socket( AF_INET, SOCK_STREAM, 0);
 
     //option to prompt OS to release the server port as soon as server process
     // is terminated
     const int on = 1; //flag variable to show port is in use
 
-    setsockopt(server_socket_desc, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof( int ));
+    setsockopt(serverSockDes, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof( int ));
 
     //bind socket to local address, giving socket descriptr, socked address,
     //data size
 
     //BIND() : RETURN val; on success 0, on failure -1 is returned, ERRNO is set
     //appropriatly
-    int returnCode = bind( server_socket_desc, ( sockaddr* )&acceptSockAddr, sizeof( acceptSockAddr ));
+    int returnCode = bind( serverSockDes, ( sockaddr* )&acceptSockAddr, sizeof( acceptSockAddr ));
     
     //check if failure
     if(returnCode == -1){
         cerr << "Error: binding socket failed: " << returnCode << endl;
-        close(server_socket_desc);
+        close(serverSockDes);
         return returnCode;
     }
 
     //inform OS to listen up to 5 connection requests from client at a time
-    listen(server_socket_desc, NUM_CONNECTIONS);
+    listen(serverSockDes, NUM_CONNECTIONS);
     cout << "[SERVER] Begining listening ... " << endl;
     //create a new socket for arriving connections
     sockaddr_in newSockAddr;
@@ -162,7 +164,7 @@ int main(int argc, char *argv[]){
     //-> The Second argument is a reference pointer to the address of the client on
     //the other side of the connection.
     //-> The Third argument is size of this structure.
-    int new_server_desc = accept( server_socket_desc, (sockaddr *)&newSockAddr, &newSockAddrSize );
+    int new_server_desc = accept( serverSockDes, (sockaddr *)&newSockAddr, &newSockAddrSize );
 
     //make the asynchronous split, using SIGIO flags
 

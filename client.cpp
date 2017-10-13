@@ -28,7 +28,7 @@
 #include <ctime>
 
 using namespace std;
-
+const int BUFFSIZE = 1500;
 int main(int argc, char *argv[]){
     //argc is the argument count that was passed
     //argv[0] is always the name of the program itself if there is 
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]){
     int repetition = atoi(argv[2]); //repetition
     int num_buffs = atoi(argv[3]);   //nbufs
     int buff_size = atoi(argv[4]);  //bufsize
-    char *server_name = argv[5];    //server name, pointer to the IP number
+    const char *server_name = argv[5];    //server name, pointer to the IP number
     int type = atoi(argv[6]);       //type of process
     
 
@@ -78,11 +78,10 @@ int main(int argc, char *argv[]){
     }
     //connecting the socket
     //build the socket for the client side
-    struct sockaddr_in sendSockAddr;
+    sockaddr_in sendSockAddr;
     bzero( (char*)&sendSockAddr, sizeof( sendSockAddr) ); //zero-initalize
     sendSockAddr.sin_family = AF_INET;              //Address Family internet
-    sendSockAddr.sin_addr.s_addr = inet_addr( inet_ntoa( *(struct in_addr*)
-    *host->h_addr_list ) );        
+    sendSockAddr.sin_addr.s_addr = inet_addr( inet_ntoa(*(struct in_addr*)(*host->h_addr_list ) ));        
     sendSockAddr.sin_port = htons( port_num);       //Set port
 
     cout << "finished creating socket" << endl;
@@ -126,6 +125,7 @@ int main(int argc, char *argv[]){
     gettimeofday(&start, NULL);
 
     cout << "Sending the data " << endl;
+
     for(int i = 0; i < repetition; i++){
         //cout << "i = " << i << " repetiton amount: " << repetition << endl;
         if(type == 1){
@@ -155,18 +155,18 @@ int main(int argc, char *argv[]){
     //get the number of count the server ran/response
     int count;
     cout << "Waiting for response from server " << endl;
-    read(clientSd, &count, sizeof(count));
+    //read(clientSd, &count, sizeof(count));
     cout << "count is: " << count << endl;
 
     //record completion time
     gettimeofday(&stop, NULL);
 
 
-    lap_time = (lap.tv_sec - start.tv_sec) * 1000000 + (lap.tv_sec -
-    start.tv_sec);
+    lap_time = (lap.tv_sec - start.tv_sec) * 1000000 + (lap.tv_usec -
+    start.tv_usec);
 
-    total_time = (stop.tv_sec - start.tv_sec ) * 1000000 + (stop.tv_sec -
-    start.tv_sec);
+    total_time = (stop.tv_sec - start.tv_sec ) * 1000000 + (stop.tv_usec -
+    start.utv_sec);
 
     cout << "Type of write: " << type << endl;
     cout << "data-sending time = " << lap_time << " usec" << endl;
