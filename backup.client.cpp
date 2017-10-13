@@ -1,3 +1,4 @@
+
 ///////////////////////////////////////////////////////////////////
 // Program: client.cpp
 // Description: make a socket between client and server
@@ -23,29 +24,8 @@
 
 #include <cstdlib>      //convert from char to int lib
 
-//time libraries
-#include <cstdio>
-#include <ctime>
 
 using namespace std;
-/*
-void multi_writes(int socket_desc, char data[], int nbufs){
-    for(int j = 0; j < nbufs; j++){
-        write(socket_desc, data[j], 1024); //socket descriptor
-
-    }
-}
-
-void write_v(int socket_desc, char data[], int nbufs){
-    struct iovec vector[nbufs];
-    for(int j=0; j < nbufs; j++){
-        vector[j].iov_base = data[j];
-        vectir[j].iov_len = buffsize;
-    
-    }
-    writev(socket_desc, vector, nbufs);
-}
-*/
 
 int main(int argc, char *argv[]){
     //argc is the argument count that was passed
@@ -79,15 +59,12 @@ int main(int argc, char *argv[]){
 */
     int port_num = 22588;
     int repetition = 2;
-    int num_buffs = 3;
-    int buff_size = 1024;
+    int num_bufs = 3;
+    int buff_sze = 1024;
     char *server_name = "127.0.0.1";
     int type = 1;
     
     char buf1[1024];
-
-
-
     //retrieve a hostent structure
     struct hostent *host = gethostbyname(server_name);
     //connecting the socket
@@ -108,38 +85,6 @@ int main(int argc, char *argv[]){
 
     if(connect( clientSd, (sockaddr* )&sendSockAddr, sizeof( sendSockAddr ) ) ==
     0){
-        read(clientSd, buf1, 1024);
-
-
-        cout << "Connection confirmed and made" << endl;
-        cout << "[SERVER]: " << buf1 << endl;
-
-        //connection made now send some data over
-
-        //allocate the data buff
-
-        char databuff[num_buffs][buff_size];
-        
-        //start the timer
-        clock_t start = clock();
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-
-
-        
-        
-        
-        
-        
-        /*
         cout << "Connecting to server, port number: " << port_num << endl;
 
 
@@ -169,7 +114,4 @@ int main(int argc, char *argv[]){
         }while(*buf1 != ' ' );
 
     }while(true);
-
-    */
-    }
 }
