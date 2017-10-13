@@ -3,10 +3,6 @@
 //Filename: Server.cpp
 // Description: Server side
 //
-//
-//
-//
-//
 /////////////////////////
 #include <iostream>
 #include <string.h>
@@ -18,20 +14,16 @@
 #include <unistd.h>
 
 #include <sys/uio.h>
-#include <netinet/tcp.h>
 #include <fcntl.h>
-
+#include <sys/time.h>
 #include <signal.h>
-#include <stdio.h>
-#include <cstdio>
-#include <ctime>
 using namespace std;
 //////
 // Description: called on I/O interrupt
 //
 //////
 
-const int BUFFSIZE = 1500;      //as specified
+const int BUFFSIZE = 10;      //as specified
 const int NUM_CONNECTIONS = 5;  //as specified, max common connections
 ////////////////////////////////
 //Descption: Function called during async socket connections to do the data
@@ -45,53 +37,71 @@ int num_repetitions;    //Server Repeitions
 int server_socket_desc; //server socket descriptor
 int new_server_desc;    //returned connection file descritor
 
-
 void work(int signal_identifier){
+    cout << "Work function called " << endl;
     //Signal_identifier/SIGIO
 
     //allocate databuffer
     char databuff[BUFFSIZE];
     
     //start the timer
-    clock_t start = clock();
-   
-   //repeat calling read
-   int count = 0;
-   //for(int nRead=0; (nRead += read(sd, databuff, BUFFSIZE - nRead) ) < BUFFSIZE;
-   //++count);
-   
-   for(int i=0; i < num_repetitions; i++){
-    //for each repetition given, coninutally read the buffer until the number 
+    struct timeval start;
+    struct timeval stop;
+    long total_time;
 
-    //Read(): RETURN value, upon success , represents the number of bytes read
-    //from the buffer, (zero indicating end of file), and the file position is
-    //advanced by this number. IT IS NOT AN ERROR if the number is SMALLER than
-    //the number of bytes requested; Ex: because fewer bytes are actually
-    //avaliable right now( slow internet speeds, or some other reason for data
-    //not all arriving, or read was interrupted by a signal). 
+    //start the timer
+    gettimeofday(&start, NULL);
+   
+    //repeat calling read
+    int count = 0;
+   
+    for(int i = 0; i < num_repetitions; i++){
+        cout << "num_repetitions : " << num_repetitions << endl;
+        cout << "BUFF Size : " << BUFFSIZE << endl;
+        
+        //for each repetition given, coninutally read the buffer until the number 
 
-    //ON ERROR , -1 is returned, and errno is set appropriately
+        //Read(): RETURN value, upon success , represents the number of bytes read
+        //from the buffer, (zero indicating end of file), and the file position is
+        //advanced by this number. IT IS NOT AN ERROR if the number is SMALLER than
+        //the number of bytes requested; Ex: because fewer bytes are actually
+        //avaliable right now( slow internet speeds, or some other reason for data
+        //not all arriving, or read was interrupted by a signal). 
+
+        //ON ERROR , -1 is returned, and errno is set appropriately
 
         int nRead = 0;          //number of reads accordingly
         while(nRead < BUFFSIZE){//number of reads also will repersent the bytes
+        cout << "nRead: " << nRead << endl;
+        cout << "Databuff" << databuff << endl;
         //read from the buffer returned by READ(), we will increment the read by
         //the left over bytes that need to be still read, BUFFSIZE - nRead makes
         //sure we are reading all the data.
             int bytes_already_read = read(new_server_desc, databuff, BUFFSIZE - nRead);
             nRead += bytes_already_read;
             count++;
+            cout << "bytes already read: " << bytes_already_read << endl;
         }
    }
-
-   //record the processing time
-   double duration = ( clock() - start)/(double) CLOCKS_PER_SEC;
-   cout << "data-receiving time = " << duration << " usec" << endl;
-
+    cout << "finished Reading data " << endl;
+    //record the processing time
+    
+    gettimeofday(&stop, NULL);
+    //double duration = ( clock() - start)/(double) CLOCKS_PER_SEC;
+    total_time = (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_sec -
+    start.tv_sec);
+    //cout << "data-receiving time = " << duration << " usec" << endl;
+    cout << "data-receiving time = " << total_time << " usec" << endl;
     //Send the number of reads back to the client, which also serves as
     //the acknowledgment.
     //dereference int count for the actual value
-    write(new_server_desc, &count, sizeof(count));
-    
+    write(new_server_desc, &count, sizeof(count) );
+   
+    //terminate the server process
+    close(new_server_desc);
+    close(server_socket_desc);
+
+    exit(0);
 }
 int main(int argc, char *argv[]){
 
@@ -101,9 +111,9 @@ int main(int argc, char *argv[]){
     
     //TODO: Error checking
     
-    int port_num = 22588;
-    int num_repetitions = 4;
-    
+    int port_num = atoi(argv[1]);
+    num_repetitions = atoi(argv[2]);
+        
     //build the struct for establising a connection
     struct sockaddr_in acceptSockAddr;
     //zero initalize the struct
@@ -139,7 +149,7 @@ int main(int argc, char *argv[]){
 
     //inform OS to listen up to 5 connection requests from client at a time
     listen(server_socket_desc, NUM_CONNECTIONS);
-
+    cout << "[SERVER] Begining listening ... " << endl;
     //create a new socket for arriving connections
     sockaddr_in newSockAddr;
     socklen_t newSockAddrSize = sizeof( newSockAddr );
@@ -157,17 +167,6 @@ int main(int argc, char *argv[]){
     //make the asynchronous split, using SIGIO flags
 
     signal(SIGIO, work);
-
-/*
-    cout << "awaiting a connection... " << endl;
-
-    cout << "got something coming in" << endl;
-    strcpy(buf1, "Server Connected");
-    write(newSd, buf1, 1024);
-    //should block and wait
-    read(newSd, buf1, 1024);
-*/
-    
     fcntl(new_server_desc, F_SETOWN, getpid());
     fcntl(new_server_desc, F_SETFL, FASYNC);
 

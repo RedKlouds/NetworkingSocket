@@ -22,7 +22,7 @@
 #include <sys/uio.h>    //writev
 
 #include <cstdlib>      //convert from char to int lib
-
+#include <sys/time.h>
 //time libraries
 #include <cstdio>
 #include <ctime>
@@ -50,23 +50,24 @@ int main(int argc, char *argv[]){
 
     //TODO: Error checking
 
-/* Commented out for Local testing
+// Commented out for Local testing
     int port_num = atoi(argv[1]);   //port (last5 digits of STUID)
     int repetition = atoi(argv[2]); //repetition
-    int num_bufs = atoi(argv[3]);   //nbufs
+    int num_buffs = atoi(argv[3]);   //nbufs
     int buff_size = atoi(argv[4]);  //bufsize
     char *server_name = argv[5];    //server name, pointer to the IP number
     int type = atoi(argv[6]);       //type of process
     
-*/
+
+/*
     int port_num = 22588;
-    int repetition = 2;
+    int repetition = 3;
     int num_buffs = 3;
     int buff_size = 1024;
     char *server_name = "127.0.0.1";
-    int type = 1;
+    int type = 2;
     
-
+*/
     //retrieve a hostent structure
     //used to communicate to the server
     struct hostent *host = gethostbyname(server_name);
@@ -84,7 +85,7 @@ int main(int argc, char *argv[]){
     *host->h_addr_list ) );        
     sendSockAddr.sin_port = htons( port_num);       //Set port
 
-
+    cout << "finished creating socket" << endl;
     //open a stream oriented socket with Intenet address family
     //socket discriptor
     //SOCKET() RETURN value: returns a NEW file descriptor for the new socket,
@@ -113,7 +114,6 @@ int main(int argc, char *argv[]){
 
     //allocate the databuffer
     char databuffer[num_buffs][buff_size];
-    clock_t start = clock();
 
     struct timeval start;
     struct timeval lap;
@@ -125,35 +125,53 @@ int main(int argc, char *argv[]){
     //start the timer
     gettimeofday(&start, NULL);
 
-
+    cout << "Sending the data " << endl;
     for(int i = 0; i < repetition; i++){
+        //cout << "i = " << i << " repetiton amount: " << repetition << endl;
         if(type == 1){
             //multiwrite
             for(int j = 0; j < num_buffs; j++){
+                //cout << "type 1: multiwrite j = " << j << endl;
                 write(clientSd, databuffer[j], buff_size);
             }
         }else if(type == 2){
+            
             struct iovec vector[num_buffs];
-            for(int j=0; j < num_buffs; j++){
+            for(int j = 0; j < num_buffs; j++){
+                cout << "Type 2 writev j = " << j << endl;
                 vector[j].iov_base = databuffer[j];
                 vector[j].iov_len = buff_size;
             }
             writev(clientSd, vector, num_buffs);
+
         }else{
+            //cout << "Type 3 single write " << endl;
             write(clientSd, databuffer, num_buffs * buff_size);
         }
     }
-
+    cout << "finished sending data " << endl;
     //record the duration of the work done
-    
+    gettimeofday(&lap, NULL); //lap the work finished time 
     //get the number of count the server ran/response
     int count;
+    cout << "Waiting for response from server " << endl;
     read(clientSd, &count, sizeof(count));
     cout << "count is: " << count << endl;
 
-    //record the lap time
+    //record completion time
+    gettimeofday(&stop, NULL);
 
 
+    lap_time = (lap.tv_sec - start.tv_sec) * 1000000 + (lap.tv_sec -
+    start.tv_sec);
+
+    total_time = (stop.tv_sec - start.tv_sec ) * 1000000 + (stop.tv_sec -
+    start.tv_sec);
+
+    cout << "Type of write: " << type << endl;
+    cout << "data-sending time = " << lap_time << " usec" << endl;
+    cout << "server response(complete cycle) time: " <<" usec" << total_time << endl;
+    cout << "Number of reads: " << count << endl;
     //end the session
     close(clientSd);
     return 0;
