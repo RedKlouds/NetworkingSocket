@@ -28,24 +28,6 @@
 #include <ctime>
 
 using namespace std;
-/*
-void multi_writes(int socket_desc, char data[], int nbufs){
-    for(int j = 0; j < nbufs; j++){
-        write(socket_desc, data[j], 1024); //socket descriptor
-
-    }
-}
-
-void write_v(int socket_desc, char data[], int nbufs){
-    struct iovec vector[nbufs];
-    for(int j=0; j < nbufs; j++){
-        vector[j].iov_base = data[j];
-        vectir[j].iov_len = buffsize;
-    
-    }
-    writev(socket_desc, vector, nbufs);
-}
-*/
 
 int main(int argc, char *argv[]){
     //argc is the argument count that was passed
@@ -84,18 +66,19 @@ int main(int argc, char *argv[]){
     char *server_name = "127.0.0.1";
     int type = 1;
     
-    char buf1[1024];
-
-
 
     //retrieve a hostent structure
+    //used to communicate to the server
     struct hostent *host = gethostbyname(server_name);
-    //connecting the socket
+    if(host == NULL){
 
-    int port = 22588;
+    cerr << "ERROR: count not find hostname: "<< &host << endl;
+    return -1;
+    }
+    //connecting the socket
+    //build the socket for the client side
     struct sockaddr_in sendSockAddr;
     bzero( (char*)&sendSockAddr, sizeof( sendSockAddr) ); //zero-initalize
-    
     sendSockAddr.sin_family = AF_INET;              //Address Family internet
     sendSockAddr.sin_addr.s_addr = inet_addr( inet_ntoa( *(struct in_addr*)
     *host->h_addr_list ) );        
@@ -104,72 +87,74 @@ int main(int argc, char *argv[]){
 
     //open a stream oriented socket with Intenet address family
     //socket discriptor
+    //SOCKET() RETURN value: returns a NEW file descriptor for the new socket,
+    //if failure or error -1 is returned, as well as errno is set.
     int clientSd = socket( AF_INET, SOCK_STREAM, 0);
-
-    if(connect( clientSd, (sockaddr* )&sendSockAddr, sizeof( sendSockAddr ) ) ==
-    0){
-        read(clientSd, buf1, 1024);
-
-
-        cout << "Connection confirmed and made" << endl;
-        cout << "[SERVER]: " << buf1 << endl;
-
-        //connection made now send some data over
-
-        //allocate the data buff
-
-        char databuff[num_buffs][buff_size];
+    //checkign
+    if(clientSd  == -1){
+        cerr << "ERROR problems opening the sockt: " << clientSd << endl;
+        close(clientSd);
+        return -1;
+        //attempt to close the socket
         
-        //start the timer
-        clock_t start = clock();
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-
-
-        
-        
-        
-        
-        
-        /*
-        cout << "Connecting to server, port number: " << port_num << endl;
-
-
-        recv(clientSd, buf1, 1024, 0);
-        cout << "Connection made.. " << endl;
-        cout << buf1 << endl;
-
-
-
-        strcpy(buf1, "Connected");
-       
-        send(clientSd, buf1, 1024, 0);
-        cout << "inside form the client buffer: " << buf1 << endl;
     }
-    do {
-        cout << "Client: ";
-        do {
-            cin >> buf1;
-            send(clientSd, buf1, 1024, 0);
-          
-        }while(*buf1 != ' ');
 
-        cout<< "Server: ";
-        do{
-            recv(clientSd, buf1, 1024, 0);
-            cout << buf1 << " ";
-        }while(*buf1 != ' ' );
 
-    }while(true);
-
-    */
+    //if all success create the connection
+    int resultCode = connect(clientSd, (sockaddr*)&sendSockAddr,
+    sizeof(sendSockAddr));
+    //CONNECT() RETURN value: -1 for failure errno is set. otherwise 0 returns
+    if( resultCode == -1){
+        cerr<< "ERROR connecting to server: " << resultCode << endl;
+        close(clientSd);
+        return -1;
     }
+
+
+    //allocate the databuffer
+    char databuffer[num_buffs][buff_size];
+    clock_t start = clock();
+
+    struct timeval start;
+    struct timeval lap;
+    struct timeval stop;
+
+    long lap_time;
+    long total_time;
+
+    //start the timer
+    gettimeofday(&start, NULL);
+
+
+    for(int i = 0; i < repetition; i++){
+        if(type == 1){
+            //multiwrite
+            for(int j = 0; j < num_buffs; j++){
+                write(clientSd, databuffer[j], buff_size);
+            }
+        }else if(type == 2){
+            struct iovec vector[num_buffs];
+            for(int j=0; j < num_buffs; j++){
+                vector[j].iov_base = databuffer[j];
+                vector[j].iov_len = buff_size;
+            }
+            writev(clientSd, vector, num_buffs);
+        }else{
+            write(clientSd, databuffer, num_buffs * buff_size);
+        }
+    }
+
+    //record the duration of the work done
+    
+    //get the number of count the server ran/response
+    int count;
+    read(clientSd, &count, sizeof(count));
+    cout << "count is: " << count << endl;
+
+    //record the lap time
+
+
+    //end the session
+    close(clientSd);
+    return 0;
 }
