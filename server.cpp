@@ -43,8 +43,8 @@ void work(int signal_identifier){
     cout << "Work function called " << endl;
     //Signal_identifier/SIGIO
 
-    //allocate databuffer
-    char databuff[BUFFSIZE];
+    //allocate dataBufferer
+    char dataBuffer[BUFFSIZE];
     
     //start the timer
     struct timeval start;
@@ -58,8 +58,6 @@ void work(int signal_identifier){
     int count = 0;
    
     for(int i = 0; i < num_reps; i++){
-        cout << "num_reps : " << num_reps << endl;
-        cout << "BUFF Size : " << BUFFSIZE << endl;
         
         //for each repetition given, coninutally read the buffer until the number 
 
@@ -74,15 +72,15 @@ void work(int signal_identifier){
 
         int nRead = 0;          //number of reads accordingly
         while(nRead < BUFFSIZE){//number of reads also will repersent the bytes
-        cout << "nRead: " << nRead << endl;
-        cout << "Databuff" << databuff << endl;
+        //cout << "nRead: " << nRead << endl;
+        //cout << "Databuff" << dataBuffer << endl;
         //read from the buffer returned by READ(), we will increment the read by
         //the left over bytes that need to be still read, BUFFSIZE - nRead makes
         //sure we are reading all the data.
-            int bytes_already_read = read(new_server_desc, databuff, BUFFSIZE - nRead);
-            nRead += bytes_already_read;
+            int bytes_read = read(new_server_desc, dataBuffer, BUFFSIZE - nRead);
+            nRead += bytes_read;
             count++;
-            cout << "bytes already read: " << bytes_already_read << endl;
+            //cout << "bytes already read: " << bytes_read << endl;
         }
    }
     cout << "finished Reading data " << endl;
@@ -140,10 +138,10 @@ int main(int argc, char *argv[]){
 
     //BIND() : RETURN val; on success 0, on failure -1 is returned, ERRNO is set
     //appropriatly
-    int returnCode = bind( serverSockDes, ( sockaddr* )&acceptSockAddr, sizeof( acceptSockAddr ));
+    int returnCode = bind( serverSockDes, ( sockaddr*)&acceptSockAddr, sizeof( acceptSockAddr ));
     
     //check if failure
-    if(returnCode == -1){
+    if(returnCode < 0){
         cerr << "Error: binding socket failed: " << returnCode << endl;
         close(serverSockDes);
         return returnCode;
@@ -164,7 +162,7 @@ int main(int argc, char *argv[]){
     //-> The Second argument is a reference pointer to the address of the client on
     //the other side of the connection.
     //-> The Third argument is size of this structure.
-    int new_server_desc = accept( serverSockDes, (sockaddr *)&newSockAddr, &newSockAddrSize );
+    new_server_desc = accept( serverSockDes, (sockaddr *)&newSockAddr, &newSockAddrSize );
 
     //make the asynchronous split, using SIGIO flags
 

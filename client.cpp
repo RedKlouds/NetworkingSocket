@@ -91,7 +91,7 @@ int main(int argc, char *argv[]){
     //if failure or error -1 is returned, as well as errno is set.
     int clientSd = socket( AF_INET, SOCK_STREAM, 0);
     //checkign
-    if(clientSd  == -1){
+    if(clientSd  < 0){
         cerr << "ERROR problems opening the sockt: " << clientSd << endl;
         close(clientSd);
         return -1;
@@ -101,10 +101,9 @@ int main(int argc, char *argv[]){
 
 
     //if all success create the connection
-    int resultCode = connect(clientSd, (sockaddr*)&sendSockAddr,
-    sizeof(sendSockAddr));
+    int resultCode = connect(clientSd, (sockaddr*)&sendSockAddr,sizeof(sendSockAddr));
     //CONNECT() RETURN value: -1 for failure errno is set. otherwise 0 returns
-    if( resultCode == -1){
+    if( resultCode < 0 ){
         cerr<< "ERROR connecting to server: " << resultCode << endl;
         close(clientSd);
         return -1;
@@ -138,7 +137,7 @@ int main(int argc, char *argv[]){
             
             struct iovec vector[num_buffs];
             for(int j = 0; j < num_buffs; j++){
-                cout << "Type 2 writev j = " << j << endl;
+               // cout << "Type 2 writev j = " << j << endl;
                 vector[j].iov_base = databuffer[j];
                 vector[j].iov_len = buff_size;
             }
@@ -155,8 +154,8 @@ int main(int argc, char *argv[]){
     //get the number of count the server ran/response
     int count;
     cout << "Waiting for response from server " << endl;
-    //read(clientSd, &count, sizeof(count));
-    cout << "count is: " << count << endl;
+    read(clientSd, &count, sizeof(count));
+   // cout << "count is: " << count << endl;
 
     //record completion time
     gettimeofday(&stop, NULL);
@@ -166,7 +165,7 @@ int main(int argc, char *argv[]){
     start.tv_usec);
 
     total_time = (stop.tv_sec - start.tv_sec ) * 1000000 + (stop.tv_usec -
-    start.utv_sec);
+    start.tv_usec);
 
     cout << "Type of write: " << type << endl;
     cout << "data-sending time = " << lap_time << " usec" << endl;
