@@ -1,4 +1,5 @@
 ///////////////////////////////////////////////////////////////////
+// Danny Ly
 // Program: client.cpp
 // Description: make a socket between client and server
 // sending data back and fourth and comparing multi-write
@@ -49,7 +50,10 @@ int main(int argc, char *argv[]){
     //argv[6] type: type of transfer scenario to test(1,2,or 3)
 
     //TODO: Error checking
-
+    if (argc < 7) {
+        cout << "error you are missing parameters" << endl;
+        return 0;
+    }
 // Commented out for Local testing
     int port_num = atoi(argv[1]);   //port (last5 digits of STUID)
     int repetition = atoi(argv[2]); //repetition
@@ -160,7 +164,7 @@ int main(int argc, char *argv[]){
     //record completion time
     gettimeofday(&stop, NULL);
 
-
+    //time recording and reporting
     lap_time = (lap.tv_sec - start.tv_sec) * 1000000 + (lap.tv_usec -
     start.tv_usec);
 
@@ -169,7 +173,7 @@ int main(int argc, char *argv[]){
 
     cout << "Type of write: " << type << endl;
     cout << "data-sending time = " << lap_time << " usec" << endl;
-    cout << "server response(complete cycle) time: " <<" usec" << total_time << endl;
+    cout << "server response(complete cycle) time: " <<" usec " << total_time << endl;
     cout << "Number of reads: " << count << endl;
     //end the session
     close(clientSd);

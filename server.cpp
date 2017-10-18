@@ -1,7 +1,11 @@
 /////////////////////////
-//Danny Ly
-//Filename: Server.cpp
-// Description: Server side
+// Danny Ly
+// Filename: Server.cpp
+// Description: Server side of the respective client.cpp file, this program
+// sends acknowledgments to the clients respective connections, and waits for
+// incoming data, upon encountering data, will continue to call read, until the
+// expected databuff is met, once finished sends back data pertaining to the
+// time performance of read()
 //
 /////////////////////////
 #include <iostream>
