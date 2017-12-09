@@ -37,8 +37,7 @@ int main(int argc, char *argv[]){
 
     //After the 0th element and before argc list all arguments
     //argv[argc] is a NULL pointer.
-    //cout << "there are " << argc << " arguemnts" << argv[0] << argv[1] <<
-    //argv[2] << endl;
+
     std::cout<<"[+]Starting.... "<<std::endl;
 
     //list of expected arguments and their respective index's
@@ -49,7 +48,7 @@ int main(int argc, char *argv[]){
     //argv[5] serverIp: server IP name
     //argv[6] type: type of transfer scenario to test(1,2,or 3)
 
-    //TODO: Error checking
+    //Error checking
     if (argc < 7) {
         cout << "error you are missing parameters" << endl;
         return 0;
@@ -63,15 +62,7 @@ int main(int argc, char *argv[]){
     int type = atoi(argv[6]);       //type of process
     
 
-/*
-    int port_num = 22588;
-    int repetition = 3;
-    int num_buffs = 3;
-    int buff_size = 1024;
-    char *server_name = "127.0.0.1";
-    int type = 2;
-    
-*/
+
     //retrieve a hostent structure
     //used to communicate to the server
     struct hostent *host = gethostbyname(server_name);
@@ -130,25 +121,25 @@ int main(int argc, char *argv[]){
     cout << "Sending the data " << endl;
 
     for(int i = 0; i < repetition; i++){
-        //cout << "i = " << i << " repetiton amount: " << repetition << endl;
+ 
         if(type == 1){
             //multiwrite
             for(int j = 0; j < num_buffs; j++){
-                //cout << "type 1: multiwrite j = " << j << endl;
+                
                 write(clientSd, databuffer[j], buff_size);
             }
         }else if(type == 2){
             
             struct iovec vector[num_buffs];
             for(int j = 0; j < num_buffs; j++){
-               // cout << "Type 2 writev j = " << j << endl;
+      
                 vector[j].iov_base = databuffer[j];
                 vector[j].iov_len = buff_size;
             }
             writev(clientSd, vector, num_buffs);
 
         }else{
-            //cout << "Type 3 single write " << endl;
+   
             write(clientSd, databuffer, num_buffs * buff_size);
         }
     }
