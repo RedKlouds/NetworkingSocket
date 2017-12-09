@@ -24,23 +24,16 @@
 #include <sys/time.h>
 #include <signal.h>
 using namespace std;
-//////
-// Description: called on I/O interrupt
-//
-//////
 
+// Description: called on I/O interrupt
 const int BUFFSIZE = 1500;      //as specified
 const int NUM_CONNECTIONS = 5;  //as specified, max common connections
-////////////////////////////////
+
 //Descption: Function called during async socket connections to do the data
 //processing and work
-//
-//
-/////////////////////////////////
 
-
-int num_reps;    //Server Repeitions
-int serverSockDes; //server socket descriptor
+int num_reps;           //Server Repeitions
+int serverSockDes;      //server socket descriptor
 int new_server_desc;    //returned connection file descritor
 
 void work(int signal_identifier){
@@ -62,39 +55,33 @@ void work(int signal_identifier){
     int count = 0;
    
     for(int i = 0; i < num_reps; i++){
-        
-        //for each repetition given, coninutally read the buffer until the number 
-
         //Read(): RETURN value, upon success , represents the number of bytes read
         //from the buffer, (zero indicating end of file), and the file position is
         //advanced by this number. IT IS NOT AN ERROR if the number is SMALLER than
         //the number of bytes requested; Ex: because fewer bytes are actually
         //avaliable right now( slow internet speeds, or some other reason for data
         //not all arriving, or read was interrupted by a signal). 
-
+        
         //ON ERROR , -1 is returned, and errno is set appropriately
 
-        int nRead = 0;          //number of reads accordingly
-        while(nRead < BUFFSIZE){//number of reads also will repersent the bytes
-        //cout << "nRead: " << nRead << endl;
-        //cout << "Databuff" << dataBuffer << endl;
-        //read from the buffer returned by READ(), we will increment the read by
-        //the left over bytes that need to be still read, BUFFSIZE - nRead makes
-        //sure we are reading all the data.
+        int nRead = 0;                  //number of reads accordingly
+        while(nRead < BUFFSIZE){        //number of reads also will repersent the bytes
+
+                                        //read from the buffer returned by READ(), we will increment the read by
+                                        //the left over bytes that need to be still read, BUFFSIZE - nRead makes
+                                        //sure we are reading all the data.
             int bytes_read = read(new_server_desc, dataBuffer, BUFFSIZE - nRead);
             nRead += bytes_read;
             count++;
-            //cout << "bytes already read: " << bytes_read << endl;
+
         }
    }
     cout << "finished Reading data " << endl;
     //record the processing time
-    
     gettimeofday(&stop, NULL);
-    //double duration = ( clock() - start)/(double) CLOCKS_PER_SEC;
     total_time = (stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_usec -
     start.tv_usec);
-    //cout << "data-receiving time = " << duration << " usec" << endl;
+
     cout << "data-receiving time = " << total_time << " usec" << endl;
     //Send the number of reads back to the client, which also serves as
     //the acknowledgment.
@@ -140,8 +127,7 @@ int main(int argc, char *argv[]){
     //bind socket to local address, giving socket descriptr, socked address,
     //data size
 
-    //BIND() : RETURN val; on success 0, on failure -1 is returned, ERRNO is set
-    //appropriatly
+    //BIND() : RETURN val; on success 0, on failure -1 is returned, ERRNO is set correctly
     int returnCode = bind( serverSockDes, ( sockaddr*)&acceptSockAddr, sizeof( acceptSockAddr ));
     
     //check if failure
